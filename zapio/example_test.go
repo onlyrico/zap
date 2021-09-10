@@ -18,27 +18,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zapcore
+package zapio_test
 
 import (
-	"testing"
-	"time"
+	"io"
+	"log"
 
-	"go.uber.org/zap/internal/ztest"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapio"
 )
 
-// Verify that the mock clock satisfies the Clock interface.
-var _ Clock = (*ztest.MockClock)(nil)
+func ExampleWriter() {
+	logger := zap.NewExample()
+	w := &zapio.Writer{Log: logger}
 
-func TestSystemClock_NewTicker(t *testing.T) {
-	want := 3
+	io.WriteString(w, "starting up\n")
+	io.WriteString(w, "running\n")
+	io.WriteString(w, "shutting down\n")
 
-	var n int
-	timer := DefaultClock.NewTicker(time.Millisecond)
-	for range timer.C {
-		n++
-		if n == want {
-			return
-		}
+	if err := w.Close(); err != nil {
+		log.Fatal(err)
 	}
+
+	// Output:
+	// {"level":"info","msg":"starting up"}
+	// {"level":"info","msg":"running"}
+	// {"level":"info","msg":"shutting down"}
 }
